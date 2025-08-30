@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  api:
+    build: ../../services/api/Montinger.Api
+    environment:
+      ASPNETCORE_URLS: http://+:5080
+    ports:
+      - "5080:5080"
+
+  agent:
+    build: ../../agents/go-agent
+    environment:
+      API_BASE: http://api:5080
+    depends_on:
+      - api
