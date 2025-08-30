@@ -1,10 +1,23 @@
 services:
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD: K7i{7}(5O!&?
+      POSTGRES_DB: montinger
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg:/var/lib/postgresql/data
+
   api:
     build: ../../services/api/Montinger.Api
     environment:
       ASPNETCORE_URLS: http://+:5080
+      ConntectionStrings__Pg: Host:postgres;Username=postgres;Password=K7i{7}(5O!&?;Database=montinger
     ports:
       - "5080:5080"
+    depends_on:
+      - postgres
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:5080/v1/health"]
       interval: 3s
@@ -19,3 +32,6 @@ services:
     depends_on:
       api:
         condition: service_healthy
+
+volumes:
+  pg: {}
