@@ -1,0 +1,90 @@
+# Binaries for the current project
+# The Go build command compiles your source code into an executable binary.
+# These binaries are platform-specific and should not be committed to version control.
+# The executable name is typically the name of your project's main package.
+# Example: my-app or my_project
+# The * wildcard matches any file in the current directory.
+# The / prevents the rule from matching files in subdirectories.
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+
+# Go module cache and dependencies
+# The 'go mod tidy' and 'go mod download' commands create a local cache of
+# dependencies. This cache should not be committed to version control.
+# The 'vendor' directory is used when you explicitly run 'go mod vendor'.
+# This directory contains copies of your dependencies and should not be committed
+# if you are using Go modules. If you are not using Go modules, you may need to
+# commit this directory.
+go.sum
+# go.mod
+vendor/
+
+# Operating system and editor specific files
+# These files are created by your operating system or your editor and should
+# not be committed to version control.
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# Editor specific files
+# Add any other editor or IDE-specific files here
+# For example:
+# .vscode/settings.json
+# .vscode/launch.json
+# .vscode/tasks.json
+# .idea/workspace.xml
+# .idea/modules.xml
+
+# Test output and coverage
+# The 'go test' command can generate test output and code coverage files.
+# These files are specific to your local machine and should not be committed.
+# The '*coverage.out' rule matches files like 'coverage.out' or 'my_project_coverage.out'
+# The '*_test.go' rule matches all test files. These should be committed, so
+# you should not include this line unless you have a specific reason to ignore them.
+*.out
+*.coverage.out
+*.test
+*.prof
+
+# GoLand specific files
+# GoLand is a popular Go IDE. It creates a .idea directory and a .iml file.
+# These files are specific to your local machine and should not be committed.
+.idea/
+*.iml
+
+# Other common files to ignore
+# These files are not specific to Go but are common in many projects.
+# A build directory is often used to store the compiled binary.
+# A logs directory is used to store log files.
+build/
+logs/
+bin/
+pkg/
+dist/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# Misc
+*.swp
+*.bak
+*.tmp
+
+# For Go modules, you can ignore the vendor directory if you don't use it.
+# If you do use 'go mod vendor', you might want to commit the vendor directory
+# to ensure reproducible builds. In that case, you would remove the
+# 'vendor/' line from the .gitignore file.
