@@ -1,0 +1,79 @@
+## Ignore Visual Studio-related files
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.vsp
+*.pdb
+*.orig
+*.log
+
+## Ignore build output and temporary files
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+*.nupkg
+*.zip
+*.tar.gz
+*.tmp
+*.temp
+*.cache
+*.vsix
+*.vstmp
+*.testsetting
+*.orderedtest
+
+## Ignore NuGet-related files
+packages/
+*.nupkg
+*.nupkgs
+*.nupkg.metadata
+*.nupkg.sha512
+*.snupkg
+*.snupkg.metadata
+
+## Ignore Visual Studio Code files
+.vscode/
+
+## Ignore Rider-related files
+.idea/
+
+## Ignore resharper files
+*.resharper
+*.resharper.user
+*.resharper.user.xml
+
+## Ignore generated files and directories
+publish/
+[Pp]ublish/
+wwwroot/
+wwwroot/lib/
+wwwroot/dist/
+wwwroot/assets/
+wwwroot/vendor/
+
+## Ignore log files
+*.log
+logs/
+
+## Ignore test results
+TestResults/
+
+## Ignore machine-specific files
+*.orig
+*.bak
+*.old
+*.swo
+*.swp
+*.swd
+*.swn
+*.swr
+*.swl
+*.swm
+
+## Ignore generated files by tools
+GeneratedArtifacts/
+.ds_store
+Thumbs.db
