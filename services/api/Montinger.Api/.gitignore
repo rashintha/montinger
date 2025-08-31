@@ -1,79 +1,114 @@
-## Ignore Visual Studio-related files
-.vs/
+## Build results
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+out/
+artifacts/
+
+# Configurations
+appsettings.Development.json
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# Visual Studio
 *.suo
 *.user
 *.userosscache
 *.sln.docstates
-*.vsp
-*.pdb
-*.orig
-*.log
+.vs/
 
-## Ignore build output and temporary files
-bin/
-obj/
-[Dd]ebug/
-[Rr]elease/
-*.nupkg
-*.zip
-*.tar.gz
-*.tmp
-*.temp
-*.cache
-*.vsix
-*.vstmp
-*.testsetting
-*.orderedtest
-
-## Ignore NuGet-related files
-packages/
-*.nupkg
-*.nupkgs
-*.nupkg.metadata
-*.nupkg.sha512
-*.snupkg
-*.snupkg.metadata
-
-## Ignore Visual Studio Code files
-.vscode/
-
-## Ignore Rider-related files
+# Rider
 .idea/
+*.sln.iml
 
-## Ignore resharper files
-*.resharper
-*.resharper.user
-*.resharper.user.xml
+# DotCover
+*.dotCover
 
-## Ignore generated files and directories
-publish/
-[Pp]ublish/
-wwwroot/
-wwwroot/lib/
-wwwroot/dist/
-wwwroot/assets/
-wwwroot/vendor/
+# NuGet
+*.nupkg
+*.snupkg
+*.nuspec
+project.lock.json
+project.fragment.lock.json
+artifacts/
+packages/
+.nuget/
+*.nuget.props
+*.nuget.targets
 
-## Ignore log files
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# StyleCop
+StyleCopReport.xml
+
+# Files built by Visual Studio
+*_i.c
+*_p.c
+*.ilk
+*.meta
+*.obj
+*.iobj
+*.pch
+*.pdb
+*.ipdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
 *.log
-logs/
-
-## Ignore test results
-TestResults/
-
-## Ignore machine-specific files
-*.orig
+*.vspscc
+*_i.asm
+*_p.asm
+*.cachefile
+*.dbmdl
 *.bak
-*.old
-*.swo
-*.swp
-*.swd
-*.swn
-*.swr
-*.swl
-*.swm
+*.backup
+*.BLOB
+*.CoreCompileInputs.cache
+*.dll
+*.exe
 
-## Ignore generated files by tools
-GeneratedArtifacts/
-.ds_store
+# Others
+*.db
+*.opendb
+*.ldf
+*.mdf
+*.ndf
+
+# Resharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# TFS
+$tf/
+
+# Dotnet watch
+dotnet-watch.json
+
+# Entity Framework
+*.efml
+migrations/
+
+# Windows
 Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+*~
+

@@ -1,11 +1,14 @@
 using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
+using Montinger.Api.Data;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddDbContext<AppDb>(opt =>
+    opt.UseNpgsql(builder.Configuration.GetConnectionString("Pg") ?? builder.Configuration["ConnectionStrings:Pg"]));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
-
 app.UseSwagger();
 app.UseSwaggerUI();
 
