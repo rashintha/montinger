@@ -71,13 +71,13 @@ func fetchChecks(tenant string) ([]data.Check, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-
-	if resp.StatusCode >= 200 {
+	if resp.StatusCode >= 300 {
 		b, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("fetch checks %s: %s", resp.Status, string(b))
 	}
 	var list []data.Check
-	return list, json.NewDecoder(resp.Body).Decode(&list)
+	json.NewDecoder(resp.Body).Decode(&list)
+	return list, nil
 }
 
 func runHTTPCheck(c data.Check) {

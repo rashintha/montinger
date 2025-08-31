@@ -26,9 +26,14 @@ services:
       start_period: 5s
 
   agent:
-    build: ../../agents/go-agent
+    build:
+      context: ../../agents/go-agent
+      dockerfile: Dockerfile
     environment:
       API_BASE: http://api:5080
+      TENANT_ID: 11111111-1111-1111-1111-111111111111
+      LOCATION_ID: edge-sin-1
+      INTERVAL_SECONDS: 30
     depends_on:
       api:
         condition: service_healthy
