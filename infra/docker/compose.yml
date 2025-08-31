@@ -13,7 +13,7 @@ services:
     build: ../../services/api/Montinger.Api
     environment:
       ASPNETCORE_URLS: http://+:5080
-      ConntectionStrings__Pg: Host:postgres;Username=postgres;Password=K7i{7}(5O!&?;Database=montinger
+      ConnectionStrings__Pg: Host=postgres;Username=postgres;Password=K7i{7}(5O!&?;Database=montinger
     ports:
       - "5080:5080"
     depends_on:
