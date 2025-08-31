@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Montinger.Api.Data;
+namespace Montinger.Api.Data.Tables;
 
 public class Check
 {

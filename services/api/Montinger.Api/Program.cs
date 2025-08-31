@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Montinger.Api.Data;
+using Montinger.Api.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDb>(opt =>
@@ -14,5 +15,8 @@ app.UseSwaggerUI();
 
 app.MapGet("/v1/health", () => Results.Ok(new { status = "ok", service = "montinger-api" }));
 app.MapGet("/", () => Results.Redirect("/swagger"));
+
+app.MapChecks();
+app.MapResults();
 
 app.Run();

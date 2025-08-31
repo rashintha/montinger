@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Montinger.Api.Data.Tables;
 
 namespace Montinger.Api.Data;
 
