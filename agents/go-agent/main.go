@@ -37,7 +37,6 @@ func main() {
 
 	fmt.Println("agent: started; polling checks every ", interval, " seconds")
 	for {
-		fmt.Println("agent: running checks")
 		if err := runOnce(); err != nil {
 			fmt.Println("agent: run error:", err)
 		}
@@ -124,10 +123,7 @@ func runHTTPCheck(c data.Check) {
 	client.Transport = &tr
 	client.Timeout = time.Duration(timeoutMs) * time.Millisecond
 
-	fmt.Println("targets:", c.Targets)
-
 	for _, url := range c.Targets {
-		fmt.Println("Check")
 		start := time.Now()
 		req, _ := http.NewRequestWithContext(context.Background(), "GET", url, nil)
 		resp, err := client.Do(req)

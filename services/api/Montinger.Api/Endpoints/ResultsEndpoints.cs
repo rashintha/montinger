@@ -17,13 +17,11 @@ public static class ResultsEndpoints
             var exists = await db.Checks.AnyAsync(c => c.Id == r.CheckId && c.TenantId == r.TenantId);
             if (!exists) return Results.BadRequest(new { error = "unknown check/tenant" });
 
-            var payload = JsonSerializer.SerializeToElement(new {
-                r.Http, r.Dns, r.Icmp, r.Tcp, r.Error, r.Labels
-            });
-            
-            var row = new CheckResult
-            {
-                ResultId = string.IsNullOrWhiteSpace(r.ResultId) ? NUlid.Ulid.NewUlid().ToString() : r.ResultId,
+            var payload = JsonSerializer.SerializeToElement(new { r.Http, r.Dns, r.Icmp, r.Tcp, r.Error, r.Labels });
+
+
+            var row = new CheckResult {
+                ResultId = string.IsNullOrWhiteSpace(r.ResultId) ? NUlid.Ulid.NewUlid().ToString() : r.ResultId!,
                 CheckId = r.CheckId,
                 TenantId = r.TenantId,
                 LocationId = r.LocationId,
@@ -32,11 +30,12 @@ public static class ResultsEndpoints
                 LatencyMs = r.LatencyMs,
                 Payload = payload
             };
+
             db.CheckResults.Add(row);
             await db.SaveChangesAsync();
-            return Results.Accepted($"/v1/results/{row.ResultId}", new { row.ResultId });
+            return Results.Accepted(null, new { row.ResultId });
         });
-        
+
         return g;
     }
 }

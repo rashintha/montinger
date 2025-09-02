@@ -9,10 +9,10 @@ public class CheckResult
     public string CheckId { get; set; } = default!;
     public Guid TenantId { get; set; }
     public string LocationId { get; set; } = default!;
-    [MaxLength(12)] public string Status { get; set; } = "UNKNOWN"; // OK/WARN/CRIT/UNKNOWN
+    public string Status { get; set; } = "UNKNOWN"; // OK/WARN/CRIT/UNKNOWN
     public DateTime Ts { get; set; }
     public double? LatencyMs { get; set; }
-    public JsonElement Payload { get; set; } = JsonSerializer.SerializeToElement(new { });
+    public JsonElement Payload { get; set; }
     public DateTime CreatedAt { get; set; }
     
 }
