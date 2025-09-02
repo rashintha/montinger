@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace Montinger.Api.Endpoints.Records;
 
 public record CheckUpdate(
@@ -6,4 +8,4 @@ public record CheckUpdate(
     string? Schedule,
     List<string>? Targets,
     Dictionary<string, string>? Labels,
-    object? Settings);
+    JsonElement? Settings);

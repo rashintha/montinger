@@ -37,6 +37,7 @@ func main() {
 
 	fmt.Println("agent: started; polling checks every ", interval, " seconds")
 	for {
+		fmt.Println("agent: running checks")
 		if err := runOnce(); err != nil {
 			fmt.Println("agent: run error:", err)
 		}
@@ -50,6 +51,7 @@ func runOnce() error {
 		return err
 	}
 	for _, c := range checks {
+		fmt.Println("check:", c.Id, c.Name, c.Enabled, c.Type)
 		if !c.Enabled {
 			continue
 		}
@@ -71,12 +73,28 @@ func fetchChecks(tenant string) ([]data.Check, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
+
 	if resp.StatusCode >= 300 {
 		b, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("fetch checks %s: %s", resp.Status, string(b))
 	}
+
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		// If server returned 200 but closed early, b might be empty — treat as no checks
+		if err == io.EOF {
+			return []data.Check{}, nil
+		}
+		return nil, err
+	}
+	if len(b) == 0 {
+		return []data.Check{}, nil
+	}
+
 	var list []data.Check
-	json.NewDecoder(resp.Body).Decode(&list)
+	if err := json.Unmarshal(b, &list); err != nil {
+		return nil, fmt.Errorf("parse checks json: %w; body=%q", err, string(b))
+	}
 	return list, nil
 }
 
@@ -106,11 +124,14 @@ func runHTTPCheck(c data.Check) {
 	client.Transport = &tr
 	client.Timeout = time.Duration(timeoutMs) * time.Millisecond
 
+	fmt.Println("targets:", c.Targets)
+
 	for _, url := range c.Targets {
+		fmt.Println("Check")
 		start := time.Now()
 		req, _ := http.NewRequestWithContext(context.Background(), "GET", url, nil)
 		resp, err := client.Do(req)
-		lat := float64(time.Since(start).Nanoseconds())
+		lat := float64(time.Since(start).Milliseconds())
 
 		res := data.Result{
 			CheckId:    c.Id,
@@ -120,6 +141,7 @@ func runHTTPCheck(c data.Check) {
 			LatencyMs:  &lat,
 			Labels:     c.Labels,
 		}
+
 		if err != nil {
 			res.Status = "CRIT"
 			res.Error = err.Error()
@@ -147,6 +169,9 @@ func postResult(r data.Result) {
 		return
 	}
 	defer resp.Body.Close()
+
+	fmt.Println("post result:", resp.StatusCode, r.CheckId, r.TenantId, r.LocationId, r.Ts, r.Status, r.Error, r.LatencyMs, r.Labels, r.Http)
+
 	if resp.StatusCode >= 300 {
 		body, _ := io.ReadAll(resp.Body)
 		fmt.Printf("post %s: %s\n", resp.Status, string(body))

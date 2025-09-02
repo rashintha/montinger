@@ -17,6 +17,10 @@ public static class ResultsEndpoints
             var exists = await db.Checks.AnyAsync(c => c.Id == r.CheckId && c.TenantId == r.TenantId);
             if (!exists) return Results.BadRequest(new { error = "unknown check/tenant" });
 
+            var payload = JsonSerializer.SerializeToElement(new {
+                r.Http, r.Dns, r.Icmp, r.Tcp, r.Error, r.Labels
+            });
+            
             var row = new CheckResult
             {
                 ResultId = string.IsNullOrWhiteSpace(r.ResultId) ? NUlid.Ulid.NewUlid().ToString() : r.ResultId,
@@ -26,7 +30,7 @@ public static class ResultsEndpoints
                 Status = r.Status,
                 Ts = r.Ts,
                 LatencyMs = r.LatencyMs,
-                Payload = JsonSerializer.Serialize(new { r.Http, r.Dns, r.Icmp, r.Tcp, r.Error, r.Labels })
+                Payload = payload
             };
             db.CheckResults.Add(row);
             await db.SaveChangesAsync();

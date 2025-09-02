@@ -18,11 +18,11 @@ public class AppDb : DbContext
         b.Entity<Check>().HasIndex(x => x.TenantId);
         b.Entity<Check>().Property(x => x.CreatedAt).HasDefaultValueSql("NOW()");
         b.Entity<Check>().Property(x => x.UpdatedAt).HasDefaultValueSql("NOW()");
-        b.Entity<Check>().Property(x => x.Labels).HasColumnType("jsonb");
         b.Entity<Check>().Property(x => x.Targets).HasColumnType("jsonb");
         b.Entity<Check>().Property(x => x.Settings).HasColumnType("jsonb");
+        b.Entity<Check>().Property(x => x.Labels).HasColumnType("jsonb");
         
-        b.Entity<CheckResult>().HasIndex(x => new {x.CheckId, x.Ts}).HasDatabaseName("ix_check_result_ts");
+        b.Entity<CheckResult>().HasIndex(x => new { x.CheckId, x.Ts }).HasDatabaseName("ix_results_check_ts");
         b.Entity<CheckResult>().Property(x => x.Payload).HasColumnType("jsonb");
         b.Entity<CheckResult>().Property(x => x.CreatedAt).HasDefaultValueSql("NOW()");
     }

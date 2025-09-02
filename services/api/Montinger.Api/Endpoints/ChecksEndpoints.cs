@@ -25,9 +25,9 @@ public static class ChecksEndpoints
                 Type = dto.Type,
                 Enabled = dto.Enabled,
                 Schedule = dto.Schedule,
-                Targets = JsonSerializer.Serialize(dto.Targets ?? new()),
-                Settings = JsonSerializer.Serialize(dto.Settings ?? new()),
-                Labels = JsonSerializer.Serialize(dto.Labels ?? new())
+                Targets = dto.Targets ?? new(),
+                Settings = dto.Settings ?? JsonSerializer.SerializeToElement(new { }),
+                Labels = dto.Labels ?? new()
             };
             
             db.Checks.Add(row);
@@ -50,9 +50,9 @@ public static class ChecksEndpoints
             c.Name = dto.Name ?? c.Name;
             c.Enabled = dto.Enabled ?? c.Enabled;
             c.Schedule = dto.Schedule ?? c.Schedule;
-            if(dto.Targets is not null) c.Targets = JsonSerializer.Serialize(dto.Targets);
-            if(dto.Settings is not null) c.Settings = JsonSerializer.Serialize(dto.Settings);
-            if(dto.Labels is not null) c.Labels = JsonSerializer.Serialize(dto.Labels);
+            if(dto.Targets is not null) c.Targets = dto.Targets;
+            if(dto.Settings is not null) c.Settings = dto.Settings.Value;
+            if(dto.Labels is not null) c.Labels = dto.Labels;
             c.UpdatedAt = DateTime.UtcNow;
             await db.SaveChangesAsync();
             return Results.Ok(c);
