@@ -10,6 +10,7 @@ public class AppDb : DbContext
     public DbSet<Tenant> Tenants => Set<Tenant>();
     public DbSet<Check> Checks => Set<Check>();
     public DbSet<CheckResult> CheckResults => Set<CheckResult>();
+    public DbSet<Incident> Incidents => Set<Incident>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -25,5 +26,7 @@ public class AppDb : DbContext
         b.Entity<CheckResult>().HasIndex(x => new { x.CheckId, x.Ts }).HasDatabaseName("ix_results_check_ts");
         b.Entity<CheckResult>().Property(x => x.Payload).HasColumnType("jsonb");
         b.Entity<CheckResult>().Property(x => x.CreatedAt).HasDefaultValueSql("NOW()");
+        
+        b.Entity<Incident>().HasIndex(x => new { x.CheckId, x.IsOpen });
     }
 }

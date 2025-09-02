@@ -18,5 +18,6 @@ app.MapGet("/", () => Results.Redirect("/swagger"));
 
 app.MapChecks();
 app.MapResults();
+app.MapIncidents();
 
 app.Run();
