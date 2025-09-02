@@ -15,6 +15,8 @@ import (
 	"github.com/montinger-com/montinger/agents/go-agent/util"
 )
 
+import gp "github.com/go-ping/ping"
+
 var (
 	apiBase    = util.Env("API_BASE", "http://localhost:5080")
 	tenantID   = util.Env("TENANT_ID", "11111111-1111-1111-1111-111111111111")
@@ -62,6 +64,10 @@ func runOnce() error {
 			runTCPCheck(c)
 		case "dns":
 			runDNSCheck(c)
+		case "icmp":
+			runICMPCheck(c)
+		case "tls":
+			runTLSExpiryCheck(c)
 		default:
 			// ignore unknown for now
 		}
@@ -280,6 +286,138 @@ func runDNSCheck(c data.Check) {
 		} else if !anyFound {
 			r.Status = "WARN"
 		} else {
+			r.Status = "OK"
+		}
+		postResult(r)
+	}
+}
+
+func runICMPCheck(c data.Check) {
+	count := 3
+	timeoutMs := 2000
+	if s, ok := c.Settings["icmp"].(map[string]any); ok {
+		if v, ok := util.ToInt(s["count"]); ok && v > 0 {
+			count = v
+		}
+		if v, ok := util.ToInt(s["timeoutMs"]); ok && v > 0 {
+			timeoutMs = v
+		}
+	}
+
+	for _, host := range c.Targets {
+		pinger, err := gp.NewPinger(host)
+		if err != nil {
+			postResult(data.Result{
+				CheckId: c.Id, TenantId: c.TenantId, LocationId: locationID, Ts: time.Now().UTC(),
+				Status: "CRIT", Error: err.Error(), Labels: c.Labels,
+			})
+			continue
+		}
+		pinger.Count = count
+		pinger.Timeout = time.Duration(timeoutMs) * time.Millisecond
+		pinger.SetPrivileged(false) // UDP mode (works in containers)
+
+		start := time.Now()
+		err = pinger.Run()
+		lat := float64(time.Since(start).Milliseconds())
+		stats := pinger.Statistics()
+
+		r := data.Result{
+			CheckId: c.Id, TenantId: c.TenantId, LocationId: locationID, Ts: time.Now().UTC(),
+			LatencyMs: &lat, Icmp: map[string]any{"lossPct": stats.PacketLoss},
+			Labels: c.Labels,
+		}
+		if err != nil {
+			r.Status = "CRIT"
+			r.Error = err.Error()
+		} else if stats.PacketsRecv == 0 {
+			r.Status = "CRIT"
+		} else if stats.PacketLoss > 0 {
+			r.Status = "WARN"
+		} else {
+			r.Status = "OK"
+		}
+		postResult(r)
+	}
+}
+
+func runTLSExpiryCheck(c data.Check) {
+	port, warnDays, critDays := 443, 14, 3
+	timeoutMs := 3000
+	serverName := ""
+	if t, ok := c.Settings["tls"].(map[string]any); ok {
+		if v, ok := util.ToInt(t["port"]); ok && v > 0 {
+			port = v
+		}
+		if v, ok := util.ToInt(t["warnDays"]); ok && v > 0 {
+			warnDays = v
+		}
+		if v, ok := util.ToInt(t["critDays"]); ok && v > 0 {
+			critDays = v
+		}
+		if v, ok := util.ToInt(t["timeoutMs"]); ok && v > 0 {
+			timeoutMs = v
+		}
+		if v, ok := t["serverName"].(string); ok {
+			serverName = v
+		}
+	}
+
+	for _, host := range c.Targets {
+		d := &tls.Dialer{
+			NetDialer: &net.Dialer{Timeout: time.Duration(timeoutMs) * time.Millisecond},
+			Config: &tls.Config{
+				ServerName: func() string {
+					if serverName != "" {
+						return serverName
+					}
+					return host
+				}(),
+				MinVersion: tls.VersionTLS12,
+			},
+		}
+		start := time.Now()
+		conn, err := d.DialContext(context.Background(), "tcp", fmt.Sprintf("%s:%d", host, port))
+		lat := float64(time.Since(start).Milliseconds())
+
+		r := data.Result{
+			CheckId: c.Id, TenantId: c.TenantId, LocationId: locationID, Ts: time.Now().UTC(),
+			LatencyMs: &lat, Labels: c.Labels,
+		}
+		if err != nil {
+			r.Status = "CRIT"
+			r.Error = err.Error()
+			postResult(r)
+			continue
+		}
+		tlsConn := conn.(*tls.Conn)
+		state := tlsConn.ConnectionState()
+		_ = tlsConn.Close()
+
+		if len(state.PeerCertificates) == 0 {
+			r.Status = "CRIT"
+			r.Error = "no peer certificate"
+			postResult(r)
+			continue
+		}
+		leaf := state.PeerCertificates[0]
+		days := int(time.Until(leaf.NotAfter).Hours() / 24)
+		r.Http = map[string]any{ // stash under http-ish payload
+			"tlsExpiryDays": days,
+			"issuer":        leaf.Issuer.String(),
+			"subject":       leaf.Subject.String(),
+			"notAfter":      leaf.NotAfter.UTC().Format(time.RFC3339),
+		}
+
+		switch {
+		case days < 0:
+			r.Status = "CRIT"
+			r.Error = "certificate expired"
+		case days <= critDays:
+			r.Status = "CRIT"
+		case days <= warnDays:
+			r.Status = "WARN"
+		default:
 			r.Status = "OK"
 		}
 		postResult(r)
