@@ -18,8 +18,7 @@ public static class ResultsEndpoints
             if (!exists) return Results.BadRequest(new { error = "unknown check/tenant" });
 
             var payload = JsonSerializer.SerializeToElement(new { r.Http, r.Dns, r.Icmp, r.Tcp, r.Error, r.Labels });
-
-
+            
             var row = new CheckResult {
                 ResultId = string.IsNullOrWhiteSpace(r.ResultId) ? NUlid.Ulid.NewUlid().ToString() : r.ResultId!,
                 CheckId = r.CheckId,
@@ -34,6 +33,20 @@ public static class ResultsEndpoints
             db.CheckResults.Add(row);
             await db.SaveChangesAsync();
             return Results.Accepted(null, new { row.ResultId });
+        });
+        
+        g.MapGet("/v1/checks/{id}/results", async (AppDb db, string id, int? limit) =>
+        {
+            var take = Math.Clamp(limit ?? 20, 1, 200);
+            var rows = await db.CheckResults
+                .Where(r => r.CheckId == id)
+                .OrderByDescending(r => r.Ts)
+                .Take(take)
+                .Select(r => new {
+                    r.ResultId, r.Status, r.Ts, r.LatencyMs, r.Payload
+                })
+                .ToListAsync();
+            return Results.Ok(rows);
         });
 
         return g;
