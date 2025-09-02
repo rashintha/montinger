@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"time"
 
@@ -57,7 +58,10 @@ func runOnce() error {
 		switch c.Type {
 		case "http":
 			runHTTPCheck(c)
-		// More types soon: "tcp", "dns", "icmp"
+		case "tcp":
+			runTCPCheck(c)
+		case "dns":
+			runDNSCheck(c)
 		default:
 			// ignore unknown for now
 		}
@@ -154,6 +158,131 @@ func runHTTPCheck(c data.Check) {
 			}
 		}
 		postResult(res)
+	}
+}
+
+func runTCPCheck(c data.Check) {
+	var port int
+	var timeoutMs = 3000
+	if t, ok := c.Settings["tcp"].(map[string]any); ok {
+		if v, ok := util.ToInt(t["port"]); ok {
+			port = v
+		}
+		if v, ok := util.ToInt(t["timeoutMs"]); ok && v > 0 {
+			timeoutMs = v
+		}
+	}
+	if port <= 0 {
+		// No port defined -> produce a CRIT result per target
+		for _, _ = range c.Targets {
+			postResult(data.Result{
+				CheckId: c.Id, TenantId: c.TenantId, LocationId: locationID,
+				Ts: time.Now().UTC(), Status: "CRIT",
+				Error: "tcp.port not specified", Labels: c.Labels,
+			})
+		}
+		return
+	}
+
+	for _, host := range c.Targets {
+		addr := fmt.Sprintf("%s:%d", host, port)
+		start := time.Now()
+		conn, err := net.DialTimeout("tcp", addr, time.Duration(timeoutMs)*time.Millisecond)
+		lat := float64(time.Since(start).Milliseconds())
+
+		res := data.Result{
+			CheckId: c.Id, TenantId: c.TenantId, LocationId: locationID,
+			Ts: time.Now().UTC(), LatencyMs: &lat, Labels: c.Labels,
+		}
+		if err != nil {
+			res.Status = "CRIT"
+			res.Error = err.Error()
+		} else {
+			_ = conn.Close()
+			res.Status = "OK"
+			res.Tcp = map[string]any{"handshakeMs": lat}
+		}
+		postResult(res)
+	}
+}
+
+func runDNSCheck(c data.Check) {
+	// defaults
+	rtype := "A"
+	resolver := "1.1.1.1:53"
+	timeoutMs := 2000
+
+	if d, ok := c.Settings["dns"].(map[string]any); ok {
+		if v, ok := d["recordType"].(string); ok && v != "" {
+			rtype = v
+		}
+		if v, ok := d["resolver"].(string); ok && v != "" {
+			resolver = v
+		}
+		if v, ok := util.ToInt(d["timeoutMs"]); ok && v > 0 {
+			timeoutMs = v
+		}
+	}
+
+	// Custom resolver using UDP to chosen server
+	dialer := &net.Dialer{Timeout: time.Duration(timeoutMs) * time.Millisecond}
+	res := &net.Resolver{
+		PreferGo: true, // use Go’s resolver with Dial override
+		Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
+			// always use our resolver
+			return dialer.DialContext(ctx, "udp", resolver)
+		},
+	}
+
+	for _, name := range c.Targets {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeoutMs)*time.Millisecond)
+		start := time.Now()
+		var err error
+		var anyFound bool
+
+		switch rtype {
+		case "A":
+			var addrs []string
+			addrs, err = res.LookupHost(ctx, name)
+			anyFound = len(addrs) > 0
+		case "AAAA":
+			var ips []net.IPAddr
+			ips, err = res.LookupIPAddr(ctx, name)
+			// Filter to v6 presence
+			for _, ip := range ips {
+				if ip.IP.To16() != nil && ip.IP.To4() == nil {
+					anyFound = true
+					break
+				}
+			}
+		case "TXT":
+			var txts []string
+			txts, err = res.LookupTXT(ctx, name)
+			anyFound = len(txts) > 0
+		case "CNAME":
+			var cname string
+			cname, err = res.LookupCNAME(ctx, name)
+			anyFound = cname != ""
+		default:
+			err = fmt.Errorf("unsupported recordType: %s", rtype)
+		}
+		cancel()
+
+		lat := float64(time.Since(start).Milliseconds())
+		r := data.Result{
+			CheckId: c.Id, TenantId: c.TenantId, LocationId: locationID,
+			Ts: time.Now().UTC(), LatencyMs: &lat, Labels: c.Labels,
+			Dns: map[string]any{"recordType": rtype},
+		}
+		if err != nil {
+			r.Status = "CRIT"
+			r.Error = err.Error()
+		} else if !anyFound {
+			r.Status = "WARN"
+		} else {
+			r.Status = "OK"
+		}
+		postResult(r)
 	}
 }
 
