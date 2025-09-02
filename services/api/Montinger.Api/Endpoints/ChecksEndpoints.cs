@@ -14,7 +14,7 @@ public static class ChecksEndpoints
 
         g.MapPost("", async (AppDb db, CheckCreate dto) =>
         {
-            if (!new[] { "http","dns","icmp","tcp" }.Contains(dto.Type))
+            if (!new[] { "http","dns","icmp","tcp", "tls" }.Contains(dto.Type))
                 return Results.BadRequest(new { error = "invalid type" });
 
             var row = new Check

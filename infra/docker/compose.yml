@@ -34,6 +34,8 @@ services:
       TENANT_ID: 11111111-1111-1111-1111-111111111111
       LOCATION_ID: edge-sin-1
       INTERVAL_SECONDS: 30
+    cap_add:
+      - NET_RAW
     depends_on:
       api:
         condition: service_healthy
